@@ -1,0 +1,47 @@
+{
+  "algo": "random_forest",
+  "metrics": {
+    "train": {
+      "MAE": 13.749279436181107,
+      "RMSE": 31.958577161657235,
+      "R2": 0.9795820330042634,
+      "MAPE%": 70.83495008211652,
+      "Spearman": 0.9718517601490979,
+      "Pearson": 0.9904656589113686
+    },
+    "val": {
+      "MAE": 31.976346399976983,
+      "RMSE": 60.31597564880611,
+      "R2": 0.9173646181039575,
+      "MAPE%": 46.61973500402002,
+      "Spearman": 0.9719301601852413,
+      "Pearson": 0.9589113861187005
+    },
+    "test": {
+      "MAE": 15.9077976035219,
+      "RMSE": 31.670844148641173,
+      "R2": 0.901433917253923,
+      "MAPE%": 53.006682439572806,
+      "Spearman": 0.9698365401671916,
+      "Pearson": 0.9526319245878924
+    }
+  },
+  "n_rows": {
+    "feature_cols": [
+      "lag_1",
+      "lag_2",
+      "lag_3",
+      "roll_mean_2",
+      "roll_mean_3",
+      "roll_std_2",
+      "roll_std_3",
+      "trend_3",
+      "share_cat_DELITOS CONTRA EL PATRIMONIO",
+      "share_cat_DELITOS CONTRA LA SEGURIDAD PÚBLICA",
+      "share_cat_DELITOS CONTRA LA VIDA, EL CUERPO Y LA SALUD"
+    ],
+    "n_train": 1300,
+    "n_val": 234,
+    "n_test": 244
+  }
+}
