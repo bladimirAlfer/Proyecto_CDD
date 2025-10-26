@@ -24,7 +24,8 @@ Este gap limita la posibilidad de escalar el MVP hacia un **sistema de alerta te
 ---
 
 ### Clasificación y Justificación  
-**Clasificación:** *Inversión Estratégica*  
+
+**Clasificación:** Inversión Estratégica 
 
 **Justificación:**  
 
@@ -32,7 +33,7 @@ Esta iniciativa tiene **alto impacto en el producto** y **costo técnico medio-a
 
 Abordar el gap identificado:
 - Resuelve el “cuello de botella” de precisión en zonas de baja frecuencia, habilitando una funcionalidad nueva: predicción confiable en áreas subrepresentadas.
-- Implica reentrenar con técnicas de balanceo de clases o generación sintética (SMOTE, oversampling)**.
+- Implica reentrenar con técnicas de balanceo de clases o generación sintética (SMOTE, oversampling).
 - Aplica calibración probabilística o cuantificación de incertidumbre para mejorar la interpretación de las predicciones.  
 - Integra variables contextuales externas (iluminación pública, densidad poblacional, tipo de vía, proximidad a mercados o comisarías).  
 
