@@ -109,16 +109,13 @@ Dado que la predicción y el despliegue se evalúan a nivel anual, esta métrica
 **Definición formal:**  
 
 $$
-\text{Reducción \% anual} = 100 \times 
-\frac{\text{Crímenes}_{\text{baseline\_anual}} - 
-\text{Crímenes}_{\text{post\_anual}}}
-{\text{Crímenes}_{\text{baseline\_anual}}}
+Reducción\ \%\, anual = 100 \times \frac{(Crímenes\ baseline\ anual - Crímenes\ post\ anual)}{Crímenes\ baseline\ anual}
 $$
 
 **Donde:**  
-$\text{Crímenes}_{\text{baseline\_anual}}$: promedio anual de delitos en el/los hotspot(s) durante los N años previos al piloto (recomendado N=3 para suavizar variaciones).  
-$\text{Crímenes}_{\text{post\_anual}}$: cantidad de delitos en el año del piloto o primer año post-despliegue.
-
+- *Crímenes baseline anual*: promedio anual de delitos en los hotspot(s) durante los N años previos al piloto (recomendado N=3 para suavizar variaciones).  
+- *Crímenes post anual*: cantidad de delitos en el año del piloto o primer año post-despliegue.
+  
 **Normalización por población:** para comparar zonas con distintas poblaciones se calcula también delitos por 10,000 habitantes:
 
 $$\text{Delitos por 10k (anual)} = \frac{\text{Delitos anuales}}{\text{Población}} \times 10000$$
