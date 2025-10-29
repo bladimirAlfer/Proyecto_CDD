@@ -109,7 +109,9 @@ Dado que la predicción y el despliegue se evalúan a nivel anual, esta métrica
 **Definición formal:**  
 
 $$
-Reducción\ \%\, anual = 100 \times \frac{(Crímenes\ baseline\ anual - Crímenes\ post\ anual)}{Crímenes\ baseline\ anual}
+\text{Reducción \% anual} = 100 \times 
+\frac{(\text{Crímenes baseline anual} - \text{Crímenes post anual})}
+{\text{Crímenes baseline anual}}
 $$
 
 **Donde:**  
