@@ -1,74 +1,88 @@
-# Compromisos y Plan de Trabajo Final
+# Compromisos y Plan de Trabajo
 
 ## Proyecto: Predicción Espacio-Temporal de Delitos en Lima Metropolitana
 
-Duración del plan: **2 (10–24 de noviembre de 2025)**  
+**Fecha de inicio:** 10 de noviembre de 2025  
+**Duración del plan:** 2 semanas (10–23 de noviembre de 2025)
 
 ---
 
 ## Objetivo General
 
-Consolidar y preparar el MVP del proyecto para su presentación final, priorizando:
-- Validación técnica y comparativa del modelo integrado vs. baseline.
-- Simulación de despliegue (predicciones 2024–2025).
-- Documentación extendida, interpretación de resultados y comunicación visual.
-- Reproducibilidad total y empaquetado final para evaluación.
+Consolidar y mejorar el MVP del proyecto, enfocándose en:
+- **Mejoras del frontend**: Optimización de la aplicación Streamlit para mejor usabilidad y visualización
+- **Búsqueda de hiperparámetros**: Optimización del modelo integrado (GCN + LSTM + Attention) mediante grid search o random search
+- **Validación comparativa**: Comparación entre modelo baseline y modelo integrado
+- **Documentación actualizada**: README y COMMITMENTS reflejando el estado actual del proyecto
 
 ---
 
-## 🧩 Objetivos SMART
+## 🧩 Tareas Específicas (Próximas 2 Semanas)
 
-| Nº | Tarea SMART | Responsable | Fecha límite | Métrica de Éxito |
-|----|--------------|--------------|---------------|------------------|
-| 1 | **Refinar la simulación de predicción 2024–2025**, generando escenarios alternativos (variación espacial + temporal). | Bladimir | 15 nov 2025 | Predicciones guardadas (`predictions_2024.csv`, `predictions_2025.csv`) sin errores de ejecución. |
-| 2 | **Implementar análisis visual y narrativo** de resultados (mapas de calor, error por distrito, tendencia temporal). | Martín | 17 nov 2025 | 3 visualizaciones exportadas (`outputs/visuals/`), notebook actualizado. |
-| 3 | **Empaquetar el pipeline completo** (baseline + modelo avanzado) en un solo flujo reproducible (`run_all.py`). | Stuart | 20 nov 2025 | Script ejecutable que reproduce todas las etapas en <5 min de ejecución. |
-| 4 | **Preparar documentación final y MVP.** | Todos | 22 nov 2025 | README extendido con explicación técnica. |
-| 5 | **Simular despliegue local del modelo** con input manual de coordenadas/distrito. | Bladimir | 24 nov 2025 | Predicción en consola o mapa interactivo funcional (MVP demostrable). |
-
----
-
-## Métricas de Éxito
-
-| Métrica | Descripción | Meta |
-|----------|--------------|------|
-| **MAE ≤ 10** | Error medio absoluto en test final | Cumplido o mejorado |
-| **RMSE ≤ 15** | Error cuadrático medio en test final | Cumplido |
-| **ΔMAE (↓)** | Reducción ≥ 10% respecto al baseline | Cumplido |
-| **Reproducibilidad** | Ejecución completa del proyecto en entorno limpio | 100% |
-| **Documentación** | README y COMMITMENTS completos, claros y actualizados | 100% |
-
+| Nº | Tarea | Fecha límite | Métrica de Éxito Cuantificable |
+|----|-------|--------------|--------------------------------|
+| 1 | **Mejorar interfaz de Streamlit (app.py)** | 13 nov 2025 | 3 mejoras implementadas: (1) Filtros por rango de valores, (2) Comparación lado a lado de años, (3) Exportación de gráficos |
+| 2 | **Implementar búsqueda de hiperparámetros para modelo integrado** | 16 nov 2025 | Script de grid search ejecutado, al menos 20 combinaciones probadas, mejor configuración guardada con métricas |
+| 3 | **Optimizar visualizaciones del mapa** | 18 nov 2025 | Tiempo de carga < 3 segundos, tooltips informativos, leyenda clara |
+| 4 | **Comparar modelos baseline vs integrado** | 20 nov 2025 | Tabla comparativa generada con métricas (MAE, RMSE, MAPE) para ambos modelos |
+| 5 | **Actualizar documentación (README y COMMITMENTS)** | 22 nov 2025 | README actualizado con instrucciones del modelo integrado, COMMITMENTS con estado actual vs esperado |
+| 6 | **Validación final y pruebas** | 23 nov 2025 | Pipeline completo ejecutable sin errores, métricas documentadas, frontend funcional |
 
 ---
 
-## ⚙️ Plan B — Estrategias ante fallos críticos
+## Métricas de Éxito Cuantificables
+
+| Métrica | Descripción | Meta Actual | Meta Esperada (23 nov) |
+|----------|-------------|-------------|------------------------|
+| **MAE (Modelo Integrado)** | Error medio absoluto en test | Baseline actual | Reducción ≥ 5% vs baseline |
+| **RMSE (Modelo Integrado)** | Error cuadrático medio en test | Baseline actual | Reducción ≥ 5% vs baseline |
+| **Tiempo de carga (Frontend)** | Tiempo para cargar mapa en Streamlit | Actual | < 3 segundos |
+| **Cobertura de hiperparámetros** | Combinaciones probadas en grid search | 0 | ≥ 20 combinaciones |
+| **Usabilidad del frontend** | Funcionalidades nuevas implementadas | Actual | +3 mejoras (filtros, comparación, exportación) |
+| **Reproducibilidad** | Ejecución completa sin errores | Parcial | 100% (ambos modelos) |
+
+---
+
+## ⚙️ Plan B — Estrategias ante Fallos Críticos
 
 | Componente Crítico | Riesgo Potencial | Estrategia de Plan B |
 |--------------------|------------------|----------------------|
-| **Codificación espacial (H3)** | Error en librería `h3` o coordenadas inválidas. | Sustituir H3 por agrupación por **distrito** o cuadrantes definidos manualmente (`grid_id`). Entrenar el modelo solo con tasas por distrito. |
-| **Escalado y normalización** | `StandardScaler` genera NaN o valores extremos. | Implementar control de errores (`np.isnan`) y usar **MinMaxScaler** por distrito si es necesario. |
-| **Tiempo de entrenamiento excesivo** | Dataset amplio o falta de hardware. | Reducir cantidad de distritos a los 10 más incidentes y disminuir `epochs` y `hidden_dim`. |
+| **Búsqueda de hiperparámetros muy lenta** | Grid search toma > 24 horas | Reducir espacio de búsqueda a 5-10 combinaciones más prometedoras, usar random search en lugar de grid search completo |
+| **Modelo integrado no converge** | Pérdida no disminuye o NaN durante entrenamiento | Reducir learning rate, disminuir `hidden_dim` a 32, reducir `epochs` a 20, verificar normalización de datos |
+| **Frontend lento o con errores** | Streamlit crashea o tarda mucho en cargar | Simplificar visualizaciones, usar cache más agresivo (`@st.cache_data`), reducir tamaño de datos mostrados, deshabilitar capas opcionales |
+| **Dependencias faltantes** | PyTorch o librerías no instaladas | Documentar instalación paso a paso, crear script de setup automático, usar entornos virtuales |
+| **Datos incompletos o corruptos** | Errores al cargar CSVs | Validar datos antes de procesar, agregar manejo de errores, usar datos de ejemplo si faltan archivos |
 
 ---
 
-## 📈 Estado Actual vs Estado Esperado (10–24 nov 2025)
+## 📈 Estado Actual vs Estado Esperado (9–23 nov 2025)
 
-| Componente | Estado Actual | Estado Esperado (24 nov 2025) |
-|-------------|----------------|-------------------------------|
-| **Dataset consolidado (`ALL_DATA.csv`)** | Validado y unificado. | Enriquecido con variables contextuales (cobertura, patrullaje). |
-| **Modelo avanzado (GCN + LSTM + Attention)** | Entrenado y probado |Optimizado y validado, guardado en `ig_outputs/integrated_model.pt`. |
-| **Predicciones futuras (2024–2025)** | Parcialmente generadas. | Extendidas, validadas y almacenadas en `/outputs/`. |
-| **Documentación (README / COMMITMENTS)** | Actualizada parcialmente. | Finalizada con guía de ejecución y análisis comparativo. |
-| **Simulación de Deployment Local** | No implementada. | Ejecutable con predicción puntual por distrito o coordenadas. |
+| Componente | Estado Actual (9 nov 2025) | Estado Esperado (23 nov 2025) |
+|-------------|----------------------------|-------------------------------|
+| **Modelo Baseline (main.py)** | ✅ Funcional con Random Forest/XGBoost, genera predicciones 2023-2024 | ✅ Mantener funcional, documentado |
+| **Modelo Integrado (main_version_preliminar.py)** | ✅ Implementado con GCN+LSTM+Attention, hiperparámetros por defecto | ✅ Optimizado con mejor configuración encontrada mediante búsqueda |
+| **Frontend (app.py)** | ✅ Básico funcional con mapas Pydeck y Folium | ✅ Mejorado con filtros, comparaciones y exportación de gráficos |
+| **Búsqueda de hiperparámetros** | ❌ No implementada | ✅ Script funcional que prueba múltiples configuraciones y guarda mejores resultados |
+| **Comparación de modelos** | ⚠️ Parcial (solo métricas individuales) | ✅ Tabla comparativa completa con métricas de ambos modelos |
+| **Documentación** | ⚠️ README desactualizado, COMMITMENTS con fechas antiguas | ✅ README actualizado con ambos modelos, COMMITMENTS con plan actual |
 
 ---
 
 ## Criterios de Deployment si el MVP resulta funcional
 
 | Criterio | Descripción | Resultado Esperado |
-|-----------|--------------|--------------------|
-| **Ejecución Reproducible End-to-End** | El proyecto debe correr con un solo comando que ejecute todo el flujo (baseline + modelo avanzado). | `python run_all.py --csv data/ALL_DATA.csv` genera predicciones, métricas y visualizaciones sin errores. |
-| **Simulación de Despliegue Local** | Debe poder ejecutarse una predicción manual ingresando un distrito o coordenadas. | `python run_all.py --predict "CHORRILLOS,-12.17,-77.02"` devuelve predicción estimada. |
+|-----------|-------------|--------------------|
+| **Ejecución Reproducible** | Ambos modelos deben ejecutarse sin errores en entorno limpio | `python main.py --csv data/ALL_DATA.csv` y `python main_version_preliminar.py` funcionan correctamente |
+| **Frontend Funcional** | La aplicación Streamlit debe cargar y mostrar predicciones | `streamlit run app.py` inicia sin errores, muestra mapas y métricas correctamente |
+| **Métricas Documentadas** | Todas las métricas deben estar guardadas y accesibles | Archivos `outputs/metrics.json` y `ig_outputs/report.json` generados con métricas completas |
+| **Hiperparámetros Optimizados** | Mejor configuración encontrada y documentada | Archivo con mejores hiperparámetros guardado, mejora de métricas documentada |
+| **Comparación de Modelos** | Tabla o reporte comparando ambos enfoques | Documento o tabla mostrando ventajas/desventajas de cada modelo |
 
+---
 
+## Notas Adicionales
+
+- **Prioridad**: Las mejoras del frontend y la búsqueda de hiperparámetros son el foco principal
+- **Flexibilidad**: Si alguna tarea toma más tiempo del esperado, priorizar funcionalidad sobre perfección
+- **Comunicación**: Actualizar COMMITMENTS.md semanalmente con progreso real
 
