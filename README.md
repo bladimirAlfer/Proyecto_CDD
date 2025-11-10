@@ -35,7 +35,7 @@ pip install -r requirements.txt
 ## Ejecución del Notebook
 
 Asegurar de que los archivos final2016.csv a final2023.csv estén en la carpeta data/.
-El script leerá los datasets y generará los archivos necesarios.
+El script del notebook modelando_MVP.ipynb leerá los datasets y generará los archivos necesarios.
 
 ## Ejecución del Pipeline
 
