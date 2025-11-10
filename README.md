@@ -1,4 +1,4 @@
-# Proyecto_CDD — Predicción Espacio-Temporal de Delitos en Lima Metropolitana
+# Predicción Espacio-Temporal de Delitos en Lima Metropolitana
 
 ---
 
