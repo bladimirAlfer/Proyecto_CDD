@@ -1,0 +1,7 @@
+numpy==1.26.4
+pandas==2.0.3
+scipy==1.15.3
+scikit-learn==1.6.1
+xgboost==3.0.5
+joblib==1.5.0
+h3==4.3.1
