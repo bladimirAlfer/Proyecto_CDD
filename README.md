@@ -2,7 +2,7 @@
 
 ---
 
-## 📋 Descripción General
+## Descripción General
 
 Este proyecto desarrolla un **pipeline reproducible de machine learning** para predecir la **tasa de delitos por zona (H3)** en **Lima Metropolitana**, usando datos anuales de denuncias policiales del 2016 al 2023.  
 El objetivo es explorar patrones espacio-temporales de criminalidad y generar **predicciones futuras** (por ejemplo, para el año 2024).
@@ -11,7 +11,7 @@ El sistema integra procesamiento geoespacial, ingeniería de características te
 
 ---
 
-## ⚙️ Requisitos
+## Requisitos
 
 ### Pre-requisitos
 
@@ -31,3 +31,12 @@ cd Proyecto_CDD
 ```bash
 pip install -r requirements.txt
 ```
+
+## Ejecución del Pipeline
+
+Para entrenar y evaluar el modelo con el dataset consolidado, ejecuta el siguiente comando desde la raíz del proyecto:  
+
+```bash
+python main.py --csv data/ALL_DATA.csv --train-end 2021 --val-year 2022 --test-year 2023
+```
+
