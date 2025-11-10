@@ -235,8 +235,4 @@ Reduce `seq_len` o asegúrate de tener suficientes años de datos.
 
 Verifica que tus CSV tengan las columnas: `anio`, `X`, `Y`, `distrito`.
 
----
 
-## Licencia
-
-[Especificar licencia si aplica]
