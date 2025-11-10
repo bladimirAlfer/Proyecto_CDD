@@ -8,19 +8,23 @@ Duración del plan: **2 (10–24 de noviembre de 2025)**
 
 ## Objetivo General
 
-Optimizar y documentar completamente el pipeline de predicción de delitos en Lima Metropolitana, incorporando variables contextuales y simulaciones, asegurando reproducibilidad, mejora de métricas y preparación del modelo para su posible despliegue o extensión futura.
+Consolidar y preparar el MVP del proyecto para su presentación final, priorizando:
+- Validación técnica y comparativa del modelo integrado vs. baseline.
+- Simulación de despliegue (predicciones 2024–2025).
+- Documentación extendida, interpretación de resultados y comunicación visual.
+- Reproducibilidad total y empaquetado final para evaluación.
 
 ---
 
 ## 🧩 Objetivos SMART
 
-| Nº | Objetivo SMART | Responsable | Fecha límite | Resultado esperado |
-|----|----------------|--------------|---------------|--------------------|
-| 1 | **Refinar el dataset** integrando variables contextuales sintéticas (clima, densidad poblacional, cobertura policial). | Bladimir | 15 nov 2025 | Nuevas columnas agregadas y documentadas en el notebook. |
-| 2 | **Reentrenar el pipeline** con las variables nuevas y comparar desempeño con el modelo base (ΔR² o MAE). | Martin | 17 nov 2025 | `metrics.json` actualizado con mejoras cuantificables. |
-| 3 | **Simular escenarios de predicción para 2024**, generando una función `predict_new_data()` para futuros registros. | Stuart | 20 nov 2025 | Archivo `predictions_2024.csv` validado y código funcional. |
-| 4 | **Documentar las mejoras, resultados y limitaciones** en el `README.md` y `COMMITMENTS.md`. | Bladimir | 22 nov 2025 | Documentación final actualizada en GitHub. |
-| 5 | **Validar reproducibilidad del proyecto** ejecutando el pipeline completo en un entorno limpio. | Todos | 24 nov 2025 | Ejecución exitosa sin errores con el comando estándar. |
+| Nº | Tarea SMART | Responsable | Fecha límite | Métrica de Éxito |
+|----|--------------|--------------|---------------|------------------|
+| 1 | **Refinar la simulación de predicción 2024–2025**, generando escenarios alternativos (variación espacial + temporal). | Bladimir | 15 nov 2025 | Predicciones guardadas (`predictions_2024.csv`, `predictions_2025.csv`) sin errores de ejecución. |
+| 2 | **Implementar análisis visual y narrativo** de resultados (mapas de calor, error por distrito, tendencia temporal). | Martín | 17 nov 2025 | 3 visualizaciones exportadas (`outputs/visuals/`), notebook actualizado. |
+| 3 | **Empaquetar el pipeline completo** (baseline + modelo avanzado) en un solo flujo reproducible (`run_all.py`). | Stuart | 20 nov 2025 | Script ejecutable que reproduce todas las etapas en <5 min de ejecución. |
+| 4 | **Preparar documentación final y MVP.** | Todos | 22 nov 2025 | README extendido con explicación técnica. |
+| 5 | **Simular despliegue local del modelo** con input manual de coordenadas/distrito. | Bladimir | 24 nov 2025 | Predicción en consola o mapa interactivo funcional (MVP demostrable). |
 
 ---
 
@@ -28,27 +32,43 @@ Optimizar y documentar completamente el pipeline de predicción de delitos en Li
 
 | Métrica | Descripción | Meta |
 |----------|--------------|------|
-| **ΔR²** | Incremento en el coeficiente de determinación respecto al modelo base | ≥ +0.05 |
-| **MAE** | Error absoluto medio | < 10 |
-| **MAPE (%)** | Error porcentual medio absoluto | < 25% |
-| **Reproducibilidad** | Ejecución exitosa en entorno nuevo | 100% |
-| **Documentación** | README y COMMITMENTS completos y claros | 100% |
+| **MAE ≤ 10** | Error medio absoluto en test final | Cumplido o mejorado |
+| **RMSE ≤ 15** | Error cuadrático medio en test final | Cumplido |
+| **ΔMAE (↓)** | Reducción ≥ 10% respecto al baseline | Cumplido |
+| **Reproducibilidad** | Ejecución completa del proyecto en entorno limpio | 100% |
+| **Documentación** | README y COMMITMENTS completos, claros y actualizados | 100% |
+
 
 ---
 
-## Plan de Trabajo 
+## ⚙️ Plan B — Estrategias ante fallos críticos
 
-| Semana | Tareas principales | Responsables | Entregables |
-|---------|--------------------|---------------|--------------|
-| **Semana 1 (10–17 nov)** | - Agregar variables contextuales.<br>- Ajustar y limpiar el dataset consolidado.<br>- Reentrenar el modelo y analizar resultados. | Martín y Bladimir | Dataset actualizado (`ALL_DATA.csv`) y `metrics.json` con comparación. |
-| **Semana 2 (18–24 nov)** | - Implementar predicción .<br>- Validar el pipeline completo en entorno limpio.<br>- Actualizar documentación y repositorio final. | Stuart y todos | Predicciones (`predictions.csv`) y repo final documentado. |
+| Componente Crítico | Riesgo Potencial | Estrategia de Plan B |
+|--------------------|------------------|----------------------|
+| **Codificación espacial (H3)** | Error en librería `h3` o coordenadas inválidas. | Sustituir H3 por agrupación por **distrito** o cuadrantes definidos manualmente (`grid_id`). Entrenar el modelo solo con tasas por distrito. |
+| **Escalado y normalización** | `StandardScaler` genera NaN o valores extremos. | Implementar control de errores (`np.isnan`) y usar **MinMaxScaler** por distrito si es necesario. |
+| **Tiempo de entrenamiento excesivo** | Dataset amplio o falta de hardware. | Reducir cantidad de distritos a los 10 más incidentes y disminuir `epochs` y `hidden_dim`. |
 
 ---
 
-## ⚙️ Plan B
+## 📈 Estado Actual vs Estado Esperado (10–24 nov 2025)
 
-| Riesgo | Estrategia alternativa |
-|---------|------------------------|
-| Variables contextuales difíciles de obtener | Generar datos sintéticos con distribuciones basadas en densidad de delitos y cobertura policial histórica. |
-| Métricas no mejoran significativamente | Ajustar hiperparámetros (`max_depth`, `n_estimators`) o cambiar a XGBoost. |
-| Incompatibilidad de librerías o errores en H3 | Usar agrupación por distrito como fallback y guardar coordenadas originales. |
+| Componente | Estado Actual | Estado Esperado (24 nov 2025) |
+|-------------|----------------|-------------------------------|
+| **Dataset consolidado (`ALL_DATA.csv`)** | Validado y unificado. | Enriquecido con variables contextuales (cobertura, patrullaje). |
+| **Modelo avanzado (GCN + LSTM + Attention)** | Entrenado y probado |Optimizado y validado, guardado en `ig_outputs/integrated_model.pt`. |
+| **Predicciones futuras (2024–2025)** | Parcialmente generadas. | Extendidas, validadas y almacenadas en `/outputs/`. |
+| **Documentación (README / COMMITMENTS)** | Actualizada parcialmente. | Finalizada con guía de ejecución y análisis comparativo. |
+| **Simulación de Deployment Local** | No implementada. | Ejecutable con predicción puntual por distrito o coordenadas. |
+
+---
+
+## Criterios de Deployment si el MVP resulta funcional
+
+| Criterio | Descripción | Resultado Esperado |
+|-----------|--------------|--------------------|
+| **Ejecución Reproducible End-to-End** | El proyecto debe correr con un solo comando que ejecute todo el flujo (baseline + modelo avanzado). | `python run_all.py --csv data/ALL_DATA.csv` genera predicciones, métricas y visualizaciones sin errores. |
+| **Simulación de Despliegue Local** | Debe poder ejecutarse una predicción manual ingresando un distrito o coordenadas. | `python run_all.py --predict "CHORRILLOS,-12.17,-77.02"` devuelve predicción estimada. |
+
+
+
