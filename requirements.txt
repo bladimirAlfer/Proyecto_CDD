@@ -9,4 +9,4 @@ tqdm==4.67.1
 branca==0.8.2
 pydeck
 altair
-matplotlib==3.7.2
+matplotlib
