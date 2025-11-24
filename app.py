@@ -390,24 +390,17 @@ with tab2:
 with tab3:
     st.subheader("Datos Operativos")
     
-    # Filtro de tabla
-    table_df = results.copy()
-    if selected_districts:
-        table_df = table_df[table_df["Distrito"].isin(selected_districts)]
+    # CORRECCION: Usamos column_config nativo en lugar de .style (elimina dependencia de matplotlib)
+    display_df = results[["Distrito", "Nivel_Riesgo", "Real_Anterior", "Proyeccion", "Diferencia", "Tendencia"]].sort_values("Proyeccion", ascending=False)
     
     st.dataframe(
-        table_df[["Distrito", "Nivel_Riesgo", "Real_Anterior", "Proyeccion", "Diferencia", "Tendencia"]]
-        .sort_values("Proyeccion", ascending=False)
-        .style.background_gradient(cmap="Reds", subset=["Proyeccion"])
-        .format({"Proyeccion": "{:.0f}", "Real_Anterior": "{:.0f}", "Diferencia": "{:+.0f}"}),
+        display_df,
+        column_config={
+            "Proyeccion": st.column_config.NumberColumn("Proyección 2024", format="%d"),
+            "Real_Anterior": st.column_config.NumberColumn("Real 2023", format="%d"),
+            "Diferencia": st.column_config.NumberColumn("Variación", format="%+d"),
+        },
         use_container_width=True
     )
     
-    col_d1, col_d2 = st.columns([1, 3])
-    with col_d1:
-        st.download_button(
-            "📥 Descargar CSV Táctico", 
-            data=table_df.to_csv(index=False).encode('utf-8'), 
-            file_name=f"prediccion_{future_year}.csv", 
-            mime='text/csv'
-        )
+    st.download_button("📥 Descargar CSV Táctico", data=results.to_csv(index=False).encode('utf-8'), file_name=f"prediccion_{future_year}.csv", mime='text/csv')
