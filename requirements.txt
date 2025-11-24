@@ -1,15 +1,7 @@
-numpy==1.26.4
-pandas==2.0.3
-scipy==1.15.3
-scikit-learn==1.6.1
-torch>=2.0.0
-xgboost==3.0.5
-joblib==1.5.0
-h3==4.3.1
-matplotlib==3.7.2
-seaborn==0.11.0
-plotly==6.3.0
-tqdm==4.67.1
-folium==0.20.0
-branca==0.8.2
+streamlit
+pandas
+numpy
+pydeck
+altair
+torch --index-url https://download.pytorch.org/whl/cpu
 
