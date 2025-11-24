@@ -1,0 +1,11 @@
+{
+  "val_RMSE_best": 0.04013089835643768,
+  "n_nodes": 43,
+  "n_train_samples": 2,
+  "n_val_samples": 2,
+  "n_test_samples": 1,
+  "test_MAE": 0.19514447450637817,
+  "test_RMSE": 0.07098040729761124,
+  "test_MAPE_pct": 32.393665215557924,
+  "test_MAPE_coverage_pct": 100.0
+}
