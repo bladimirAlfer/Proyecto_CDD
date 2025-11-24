@@ -9,7 +9,9 @@ import glob
 import math
 import os
 
-
+# ==============================================================================
+# 1. ARQUITECTURA DEL MODELO 
+# ==============================================================================
 class ResBlockMLP(nn.Module):
     def __init__(self, in_ch, hidden):
         super().__init__()
@@ -70,7 +72,7 @@ class IntegratedModel(nn.Module):
         return y
 
 # ==============================================================================
-# 2. CONFIGURACIÓN
+# 2. CONFIGURACIÓN Y ESTILOS
 # ==============================================================================
 st.set_page_config(page_title="S.P.C. - Sistema Policial", layout="wide", page_icon="🚔")
 
@@ -98,12 +100,14 @@ st.markdown("""
 
 MODEL_PATH = "ig_outputs/integrated_model.pt"
 DATA_GLOB = "./data/final*.csv"
+# Coordenadas por defecto (Centro de Lima)
 DEFAULT_LAT = -12.046374
 DEFAULT_LON = -77.042793
 
 @st.cache_resource
 def load_system():
     if not os.path.exists(MODEL_PATH): return None
+    # weights_only=False para cargar numpy/dicts
     checkpoint = torch.load(MODEL_PATH, map_location="cpu", weights_only=False)
     cfg = checkpoint['cfg']
     dist_names = checkpoint['district_names']
@@ -122,6 +126,8 @@ def load_historical_data(districts_order):
     files = sorted(glob.glob(DATA_GLOB))
     if not files: return None, None
     df = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
+    
+    # Limpieza rigurosa
     cols = ["anio", "X", "Y", "distrito"]
     df = df.dropna(subset=cols)
     df["anio"] = pd.to_numeric(df["anio"], errors="coerce").astype(int)
@@ -129,17 +135,19 @@ def load_historical_data(districts_order):
     df["Y"] = pd.to_numeric(df["Y"], errors="coerce")
     df["distrito"] = df["distrito"].astype(str).str.strip().str.upper()
     
+    # Centroides: Asegurar que X=Longitud, Y=Latitud
     centroids = df.groupby("distrito")[["X", "Y"]].mean().reset_index()
     centroids = centroids.set_index("distrito").reindex(districts_order).reset_index()
     centroids = centroids.fillna({"X": DEFAULT_LON, "Y": DEFAULT_LAT})
     
+    # Pivot Historia
     pivot = df.groupby(["anio", "distrito"]).size().reset_index(name="n_delitos")
     pivot = pivot.pivot(index="anio", columns="distrito", values="n_delitos").fillna(0)
     pivot = pivot.reindex(columns=districts_order, fill_value=0)
     return pivot, centroids
 
 # ==============================================================================
-# 3. INFERENCIA Y LÓGICA
+# 3. INTERFAZ PRINCIPAL
 # ==============================================================================
 system = load_system()
 if not system:
@@ -147,30 +155,18 @@ if not system:
     st.stop()
 history_df, centroids_df = load_historical_data(system["districts"])
 
-# HEADER
 col_logo, col_title = st.columns([1, 6])
-with col_logo: st.markdown("# 🚔") 
+with col_logo:
+    st.markdown("# 🚔") 
 with col_title:
-    st.title("Sistema de Predicción de Criminalidad (S.P.C.)")
-    st.markdown("**Unidad de Análisis Táctico - Modelo GCN Espacio-Temporal**")
+    st.title("Sistema de Predicción de Criminalidad")
 
-# SIDEBAR
+
 st.sidebar.header("🎛️ Panel de Control")
 
-with st.sidebar.expander("🛠️ Simulador de Escenarios", expanded=False):
-    st.info("Modifica la historia reciente para ver impacto futuro.")
-    use_simulation = st.toggle("Activar Simulación")
-    last_year = int(history_df.index.max())
-    future_year = last_year + 1
-    
-    if use_simulation:
-        dist_sim = st.selectbox("Distrito a intervenir", system["districts"])
-        val_real = int(history_df.iloc[-1][dist_sim])
-        val_sim = st.number_input(f"Incidentes en {dist_sim}", value=val_real)
-        working_df = history_df.copy()
-        working_df.at[last_year, dist_sim] = val_sim
-    else:
-        working_df = history_df
+working_df = history_df
+last_year = int(history_df.index.max())
+future_year = last_year + 1
 
 st.sidebar.subheader("Filtros de Análisis")
 crime_range = st.sidebar.slider(
@@ -190,7 +186,9 @@ map_pitch = st.sidebar.slider("Inclinación Mapa 3D", 0, 60, 45)
 elevation_scale = 5
 bar_radius = 200
 
-# CALCULO PREDICCION
+# ==============================================================================
+# 5. INFERENCIA
+# ==============================================================================
 seq_len = system["seq_len"]
 input_window = working_df.iloc[-seq_len:].values
 input_scaled = (input_window - system["scaler_mean"]) / system["scaler_scale"]
@@ -201,15 +199,16 @@ with torch.no_grad():
 
 pred_raw = np.maximum((pred_scaled * system["scaler_scale"]) + system["scaler_mean"], 0)
 
+# DataFrame Maestro
 results = pd.DataFrame({
     "Distrito": system["districts"],
     "Proyeccion": pred_raw,
     "Real_Anterior": working_df.iloc[-1].values,
-    "lat": centroids_df["Y"].values,
+    "lat": centroids_df["Y"].values,  # PyDeck usa nombres específicos a veces
     "lon": centroids_df["X"].values
 })
 
-# CORRECCIÓN AQUÍ: Unificamos a "Diferencia"
+# CALCULOS ADICIONALES
 results["Diferencia"] = results["Proyeccion"] - results["Real_Anterior"]
 results["Tendencia"] = np.where(results["Diferencia"] > 0, "⬆️ Sube", "⬇️ Baja")
 
@@ -220,33 +219,85 @@ def clasificar_riesgo(val):
 
 results["Nivel_Riesgo"] = results["Proyeccion"].apply(clasificar_riesgo)
 
-# KPI
+# ==============================================================================
+# 6. KPIs TÁCTICOS DINÁMICOS 
+# ==============================================================================
+
+# Crear un subset para calcular métricas (si hay filtro de distrito activo)
+if selected_districts:
+    kpi_df = results[results["Distrito"].isin(selected_districts)].copy()
+    kpi_label_suffix = "(Selección)"
+else:
+    kpi_df = results.copy()
+    kpi_label_suffix = "(Global)"
+
+# Calcular métricas sobre el subset
+if not kpi_df.empty:
+    total_proj = kpi_df["Proyeccion"].sum()
+    total_real_ant = kpi_df["Real_Anterior"].sum()
+    
+    if total_real_ant > 0:
+        delta_total = ((total_proj - total_real_ant) / total_real_ant) * 100
+    else:
+        delta_total = 0.0
+
+    top_risk = kpi_df.loc[kpi_df["Proyeccion"].idxmax()]
+    top_dist_name = top_risk["Distrito"]
+    top_dist_val = top_risk["Proyeccion"]
+else:
+    total_proj = 0
+    delta_total = 0.0
+    top_dist_name = "N/A"
+    top_dist_val = 0
+
+# MOSTRAR KPIs
 k1, k2, k3, k4 = st.columns(4)
-total_proj = results["Proyeccion"].sum()
-delta_total = ((total_proj - results["Real_Anterior"].sum()) / results["Real_Anterior"].sum()) * 100
-top_risk = results.loc[results["Proyeccion"].idxmax()]
 
-k1.metric("Proyección Total", f"{total_proj:,.0f}", f"{delta_total:.1f}%")
-k2.metric("Distrito Más Crítico", top_risk["Distrito"])
-k3.metric("Riesgo Máximo", f"{top_risk['Proyeccion']:.0f}")
-k4.metric("Año Objetivo", f"{future_year}")
+k1.metric(
+    label="Año de Proyección", 
+    value=f"{future_year}",
+    help="Año futuro para el cual el modelo está generando la alerta."
+)
 
-# TABS
+k2.metric(
+    label=f"Proyección Total {kpi_label_suffix}", 
+    value=f"{total_proj:,.0f}", 
+    delta=f"{delta_total:.1f}% vs {last_year}",
+    help=f"Suma total de delitos estimados para los distritos seleccionados en {future_year}."
+)
+
+k3.metric(
+    label="Zona de Mayor Riesgo", 
+    value=top_dist_name,
+    help="El distrito (dentro de la selección) que presenta la mayor cantidad de delitos proyectados."
+)
+
+k4.metric(
+    label=f"Incidentes en {top_dist_name}", 
+    value=f"{top_dist_val:,.0f}",
+    help=f"Volumen específico de delitos proyectados para {top_dist_name}."
+)
+
+st.divider()
+
+# ==============================================================================
+# 7. PESTAÑAS DE VISUALIZACIÓN
+# ==============================================================================
 tab1, tab2, tab3 = st.tabs(["🗺️ Mapa Táctico", "📊 Comparativa", "📥 Datos"])
 
 # --- TAB 1: MAPA TÁCTICO ---
 with tab1:
-    # Aplicar Filtros
+    # Filtro 1: Rango
     map_data = results[
         (results["Proyeccion"] >= crime_range[0]) & 
         (results["Proyeccion"] <= crime_range[1])
     ].copy()
     
+    # Filtro 2: Distritos seleccionados
     if selected_districts:
         map_data = map_data[map_data["Distrito"].isin(selected_districts)]
 
     st.markdown(f"**Visualizando {len(map_data)} distritos**")
-    
     st.markdown("""
     <div class="legend-box">
         <span class="legend-dot" style="background-color:rgb(50, 50, 50)"></span> Bajo
@@ -258,12 +309,12 @@ with tab1:
     if map_data.empty:
         st.warning("⚠️ No hay datos con los filtros actuales.")
     else:
-        # Pre-formatear strings para evitar el bug del Tooltip
+        # Pre-formatear strings
         map_data["txt_proy"] = map_data["Proyeccion"].apply(lambda x: f"{x:,.0f}")
         map_data["txt_ant"] = map_data["Real_Anterior"].apply(lambda x: f"{x:,.0f}")
         
         # Color Dinámico
-        max_val = map_data["Proyeccion"].max()
+        max_val = map_data["Proyeccion"].max() if not map_data.empty else 1
         def get_color(val):
             ratio = val / (max_val + 1e-5)
             return [int(255 * ratio), int(255 * (1 - ratio)), 50, 200]
@@ -311,33 +362,41 @@ with tab2:
     st.subheader("Realidad vs Proyección")
     
     chart_data = results.copy()
+    # Aplicar filtro de distritos si existe
     if selected_districts:
         chart_data = chart_data[chart_data["Distrito"].isin(selected_districts)]
     
-    # Mostrar Top 20 si hay muchos
+    # Mostrar Top 20 (o todos si son pocos seleccionados)
     chart_data = chart_data.sort_values("Proyeccion", ascending=False).head(20)
     
-    df_long = pd.melt(chart_data, id_vars=["Distrito"], value_vars=["Real_Anterior", "Proyeccion"],
-                      var_name="Escenario", value_name="Incidentes")
-    
-    chart = alt.Chart(df_long).mark_bar().encode(
-        x=alt.X('Distrito:N', sort='-y', title=None),
-        y=alt.Y('Incidentes:Q', title='N° Incidentes'),
-        color=alt.Color('Escenario:N', scale=alt.Scale(range=['#9ca3af', '#ef4444']), legend=alt.Legend(title="Tipo")),
-        tooltip=['Distrito', 'Escenario', alt.Tooltip('Incidentes', format=',.0f')],
-        xOffset='Escenario:N'
-    ).properties(height=450)
-    
-    st.altair_chart(chart, use_container_width=True)
-    st.info("ℹ️ Haz clic en los tres puntos (...) arriba del gráfico para guardar como imagen.")
+    if chart_data.empty:
+        st.info("No hay datos para graficar.")
+    else:
+        df_long = pd.melt(chart_data, id_vars=["Distrito"], value_vars=["Real_Anterior", "Proyeccion"],
+                          var_name="Escenario", value_name="Incidentes")
+        
+        chart = alt.Chart(df_long).mark_bar().encode(
+            x=alt.X('Distrito:N', sort='-y', title=None),
+            y=alt.Y('Incidentes:Q', title='N° Incidentes'),
+            color=alt.Color('Escenario:N', scale=alt.Scale(range=['#9ca3af', '#ef4444']), legend=alt.Legend(title="Tipo")),
+            tooltip=['Distrito', 'Escenario', alt.Tooltip('Incidentes', format=',.0f')],
+            xOffset='Escenario:N'
+        ).properties(height=450)
+        
+        st.altair_chart(chart, use_container_width=True)
+        st.info("ℹ️ Haz clic en los tres puntos (...) arriba del gráfico para guardar como imagen.")
 
 # --- TAB 3: DATOS ---
 with tab3:
     st.subheader("Datos Operativos")
     
-    # CORRECCIÓN: Usamos 'Diferencia' que sí existe
+    # Filtro de tabla
+    table_df = results.copy()
+    if selected_districts:
+        table_df = table_df[table_df["Distrito"].isin(selected_districts)]
+    
     st.dataframe(
-        results[["Distrito", "Nivel_Riesgo", "Real_Anterior", "Proyeccion", "Diferencia", "Tendencia"]]
+        table_df[["Distrito", "Nivel_Riesgo", "Real_Anterior", "Proyeccion", "Diferencia", "Tendencia"]]
         .sort_values("Proyeccion", ascending=False)
         .style.background_gradient(cmap="Reds", subset=["Proyeccion"])
         .format({"Proyeccion": "{:.0f}", "Real_Anterior": "{:.0f}", "Diferencia": "{:+.0f}"}),
@@ -348,7 +407,7 @@ with tab3:
     with col_d1:
         st.download_button(
             "📥 Descargar CSV Táctico", 
-            data=results.to_csv(index=False).encode('utf-8'), 
+            data=table_df.to_csv(index=False).encode('utf-8'), 
             file_name=f"prediccion_{future_year}.csv", 
             mime='text/csv'
         )
